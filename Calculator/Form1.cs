@@ -210,15 +210,19 @@ namespace Calculator
 
 
         // This method is triggered when the user clicks the all clear button.
-        // It clears all the numbers displayed in the displayBox.
+        // It clears all the numbers displayed in the displayBox and resets stored memory.
         private void buttonAllclear_Click(object sender, EventArgs e)
         {
-            // Set the displayBox text to an empty string to clear all numbers.
+            // Clear the displayBox by setting its text to an empty string.
             displayBox.Text = string.Empty;
+
+            // Reset all stored variables to their initial values.
+            firstNumber = 0;
+            operation = '\0';
+            isOperationClicked = false;
+            fullExpression = string.Empty;
+            result = 0;
         }
-
-
-
 
 
         // Variable to store the first number for operations
@@ -274,6 +278,98 @@ namespace Calculator
         }
 
 
+
+        // This method is triggered when the user clicks the equal button.
+        private double result = 0; // Variable to store the result of the previous operation
+
+        private void buttonEqual_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(fullExpression) && isOperationClicked)
+            {
+                // Extract the second number from displayBox.Text and trim any spaces.
+                string[] expressionParts = displayBox.Text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Check if there are enough parts to perform the operation.
+                if (expressionParts.Length == 3)
+                {
+                    double secondNumber;
+
+                    // Extract the operator and the second number.
+                    string operatorSymbol = expressionParts[1];
+                    string secondNumberStr = expressionParts[2];
+
+                    // Check if the secondNumberStr is a valid number.
+                    if (double.TryParse(secondNumberStr, out secondNumber))
+                    {
+                        try
+                        {
+                            // Perform the corresponding operation.
+                            if (operatorSymbol == "+")
+                            {
+                                result = firstNumber + secondNumber;
+                            }
+                            else if (operatorSymbol == "-")
+                            {
+                                result = firstNumber - secondNumber;
+                            }
+                            else if (operatorSymbol == "*")
+                            {
+                                result = firstNumber * secondNumber;
+                            }
+                            else if (operatorSymbol == "/")
+                            {
+                                // Check if the second number is not zero to avoid division by zero.
+                                if (secondNumber != 0)
+                                {
+                                    result = firstNumber / secondNumber;
+                                }
+                                else
+                                {
+                                    // Handle division by zero.
+                                    displayBox.Text = "DIVISION BY ZERO";
+                                    return;
+                                }
+                            }
+
+                            // Update the fullExpression with the complete expression.
+                            fullExpression = $"{firstNumber} {operatorSymbol} {secondNumber} = {result}";
+
+                            // Display the full expression.
+                            displayBox.Text = fullExpression;
+
+                            // Update firstNumber with the result for continuous calculations.
+                            firstNumber = result;
+
+                            // Reset the operation button click flag.
+                            isOperationClicked = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            // Handle any other exceptions if they occur during the operation.
+                            displayBox.Text = "INVALID INPUT";
+                        }
+                    }
+                    else
+                    {
+                        // If secondNumberStr is not a valid number, show an error message.
+                        displayBox.Text = "INVALID INPUT";
+                    }
+                }
+                else
+                {
+                    // If there are not enough parts in the expression, show an error message.
+                    displayBox.Text = "INVALID INPUT";
+                }
+            }
+            else
+            {
+                // If the fullExpression is empty or if an operation button was not clicked, show an error message.
+                displayBox.Text = "INVALID INPUT";
+            }
+        }
+
+
+
         // This method is triggered when the user clicks an operation button.
         private void buttonAdd_Click(object sender, EventArgs e)
         {
@@ -295,85 +391,7 @@ namespace Calculator
             HandleOperationButton(sender, '/');
         }
 
-        // This method is triggered when the user clicks the equal button.
-        // This method is triggered when the user clicks the equal button.
-        private void buttonEqual_Click(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrEmpty(fullExpression) && isOperationClicked)
-            {
-                // Extract the second number from displayBox.Text and trim any spaces.
-                string secondNumberStr = displayBox.Text.Replace(fullExpression, "").Trim();
 
-                // Check if the secondNumberStr is a valid number.
-                if (double.TryParse(secondNumberStr, out double secondNumber))
-                {
-                    try
-                    {
-                        char[] validOperations = { '+', '-', '*', '/' };
-                        double result = firstNumber;
-
-                        // Iterate through valid operations and perform the calculation.
-                        for (int i = 0; i < validOperations.Length; i++)
-                        {
-                            if (operation == validOperations[i])
-                            {
-                                // Perform the corresponding operation.
-                                if (operation == '+')
-                                {
-                                    result += secondNumber;
-                                }
-                                else if (operation == '-')
-                                {
-                                    result -= secondNumber;
-                                }
-                                else if (operation == '*')
-                                {
-                                    result *= secondNumber;
-                                }
-                                else if (operation == '/')
-                                {
-                                    // Check if the second number is not zero to avoid division by zero.
-                                    if (secondNumber != 0)
-                                    {
-                                        result /= secondNumber;
-                                    }
-                                    else
-                                    {
-                                        // Handle division by zero.
-                                        displayBox.Text = "DIVISION BY ZERO";
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-
-                        // Update the fullExpression with the complete expression.
-                        fullExpression = $"{fullExpression} {secondNumber} = {result}";
-
-                        // Display the full expression.
-                        displayBox.Text = fullExpression;
-
-                        // Reset the operation button click flag.
-                        isOperationClicked = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        // Handle any other exceptions if they occur during the operation.
-                        displayBox.Text = "INVALID INPUT";
-                    }
-                }
-                else
-                {
-                    // If secondNumberStr is not a valid number, show an error message.
-                    displayBox.Text = "INVALID INPUT";
-                }
-            }
-            else
-            {
-                // If the fullExpression is empty or if an operation button was not clicked, show an error message.
-                displayBox.Text = "INVALID INPUT";
-            }
-        }
 
 
         private void displayBox_TextChanged(object sender, EventArgs e)
